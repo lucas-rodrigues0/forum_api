@@ -1,8 +1,11 @@
+import os
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine, inspect
 from sqlalchemy_utils import database_exists, create_database
 from os import environ as env
 from dotenv import find_dotenv, load_dotenv
+
+from graphql_api.models.base_model import Base
 
 
 ENV_FILE = find_dotenv()
@@ -28,6 +31,30 @@ if not database_exists(engine.url):
     create_database(engine.url)
 
 inspector = inspect(engine)
+
+
+def drop_tables():
+    Base.metadata.drop_all(
+        engine,
+        tables=[
+            Base.metadata.tables["article"],
+            Base.metadata.tables["comment"],
+        ],
+    )
+    return
+
+
+def create_tables():
+    Base.metadata.create_all(engine)
+    return
+
+
+def recreate_database():
+    print("Droping old tables")
+    drop_tables()
+    print("Creating new tables")
+    create_tables()
+    return
 
 
 # Instancia um criador de seção com o banco
