@@ -16,7 +16,7 @@ class Comment(Base):
     user_id = Column(String(80), nullable=False)
     user_email = Column(String(100), nullable=False)
     user_nickname = Column(String(80), nullable=False)
-    content = Column(String(350), nullable=False)
+    content = Column(String(1500), nullable=False)
     is_reply = Column(Boolean, default=False)
     comment_reply = Column(UUID(as_uuid=True), nullable=True)
     created_at = Column(DateTime, default=datetime.now())

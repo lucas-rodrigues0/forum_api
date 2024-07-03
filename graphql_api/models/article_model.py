@@ -15,8 +15,8 @@ class Article(Base):
     user_id = Column(String(80), nullable=False)
     user_email = Column(String(100), nullable=False)
     user_nickname = Column(String(80), nullable=False)
-    title = Column(String(80), nullable=False)
-    content = Column(String(350), nullable=False)
+    title = Column(String(100), nullable=False)
+    content = Column(String(2500), nullable=False)
     created_at = Column(DateTime, default=datetime.now())
     updated_at = Column(DateTime, default=datetime.now())
 
