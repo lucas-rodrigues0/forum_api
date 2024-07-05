@@ -1,5 +1,5 @@
 import strawberry
-from typing import Union
+from typing import Union, Optional
 import uuid
 
 from graphql_api.scalars import (
@@ -51,7 +51,10 @@ class Mutation:
 
     @strawberry.mutation
     def update_article(
-        self, article_id: uuid.UUID, title: str = None, content: str = None
+        self,
+        article_id: uuid.UUID,
+        title: Optional[str] = None,
+        content: Optional[str] = None,
     ) -> AddArticle:
         article_dict = {
             "article_id": article_id,
@@ -73,8 +76,8 @@ class Mutation:
         user_nickname: str,
         article_id: uuid.UUID,
         content: str,
-        is_reply: bool = None,
-        comment_reply: uuid.UUID = None,
+        is_reply: Optional[bool] = False,
+        comment_reply: Optional[uuid.UUID] = None,
     ) -> Union[
         AddComment, UserInfoMissing, CommentReplyNotAllowed, CommentContentMissing
     ]:

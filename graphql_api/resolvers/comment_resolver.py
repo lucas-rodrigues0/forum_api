@@ -156,6 +156,7 @@ def add_comment(comment_dict: dict):
         db.commit()
 
         comment_data = get_valid_data(comment, cm.Comment)
+        comment_data["article"] = get_article_from_comment(article.article_id)
         return AddComment(**comment_data)
 
     return CommentContentMissing(message=f"Comment {missing_column} is missing")
@@ -183,4 +184,5 @@ def update_comment(comment_dict: dict):
     db.commit()
 
     comment_data = get_valid_data(comment, cm.Comment)
+    comment_data["article"] = get_article_from_comment(comment.article_id)
     return AddComment(**comment_data)

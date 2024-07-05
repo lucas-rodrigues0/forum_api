@@ -32,7 +32,8 @@ class AddComment:
     user_email: str
     user_nickname: str
     content: str
-    article_id: Annotated["Article", strawberry.lazy(".article_scalar")]
+    article_id: uuid.UUID
+    article: Optional[Annotated["Article", strawberry.lazy(".article_scalar")]]
     is_reply: Optional[bool]
     comment_reply: Optional[uuid.UUID]
     created_at: datetime.datetime
