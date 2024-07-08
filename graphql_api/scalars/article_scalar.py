@@ -41,9 +41,14 @@ class ArticleDeleted:
 
 @strawberry.type
 class UserInfoMissing:
-    message: str = "User info is missing"
+    errors: str = "User info is missing"
 
 
 @strawberry.type
 class ArticleContentMissing:
-    message: str = "Article title or content is missing"
+    errors: str = "Article title or content is missing"
+
+
+@strawberry.type
+class InvalidUser:
+    errors: str = "Invalid user. You can only modify your own post."

@@ -4,6 +4,7 @@ from graphql_api.scalars.article_scalar import (
     ArticleDeleted,
     UserInfoMissing,
     ArticleContentMissing,
+    InvalidUser,
 )
 from graphql_api.scalars.comment_scalar import (
     Comment,

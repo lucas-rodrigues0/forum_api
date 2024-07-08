@@ -11,6 +11,7 @@ from graphql_api.scalars import (
     CommentDeleted,
     CommentContentMissing,
     CommentReplyNotAllowed,
+    InvalidUser,
 )
 from graphql_api.resolvers import (
     add_article,
@@ -45,20 +46,21 @@ class Mutation:
         return add_article_resp
 
     @strawberry.mutation
-    def remove_article(self, article_id: uuid.UUID) -> ArticleDeleted:
-        delete_article_resp = delete_article(article_id)
+    def remove_article(
+        self, article_id: uuid.UUID, user_id: str
+    ) -> Union[ArticleDeleted, InvalidUser]:
+        delete_article_resp = delete_article(article_id, user_id)
         return delete_article_resp
 
     @strawberry.mutation
     def update_article(
         self,
         article_id: uuid.UUID,
+        user_id: str,
         title: Optional[str] = None,
         content: Optional[str] = None,
-    ) -> AddArticle:
-        article_dict = {
-            "article_id": article_id,
-        }
+    ) -> Union[AddArticle, InvalidUser]:
+        article_dict = {"article_id": article_id, "user_id": user_id}
         if title:
             article_dict["title"] = title
 
@@ -98,15 +100,21 @@ class Mutation:
         return add_comment_resp
 
     @strawberry.mutation
-    def remove_comment(self, comment_id: uuid.UUID) -> CommentDeleted:
-        delete_comment_resp = delete_comment(comment_id)
+    def remove_comment(
+        self, comment_id: uuid.UUID, user_id: str
+    ) -> Union[CommentDeleted, InvalidUser]:
+        delete_comment_resp = delete_comment(comment_id, user_id)
         return delete_comment_resp
 
     @strawberry.mutation
     def update_comment(
-        self, comment_id: uuid.UUID, content: str
-    ) -> Union[AddComment, CommentContentMissing]:
-        comment_dict = {"comment_id": comment_id, "content": content}
+        self, comment_id: uuid.UUID, user_id: str, content: str
+    ) -> Union[AddComment, CommentContentMissing, InvalidUser]:
+        comment_dict = {
+            "comment_id": comment_id,
+            "user_id": user_id,
+            "content": content,
+        }
 
         update_comment_resp = update_comment(comment_dict)
         return update_comment_resp

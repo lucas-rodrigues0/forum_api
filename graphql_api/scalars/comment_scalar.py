@@ -47,9 +47,9 @@ class CommentDeleted:
 
 @strawberry.type
 class CommentContentMissing:
-    message: str = "Comment content is missing"
+    errors: str = "Comment content is missing"
 
 
 @strawberry.type
 class CommentReplyNotAllowed:
-    message: str = "Comment can not be replied to another reply"
+    errors: str = "Comment can not be replied to another reply"

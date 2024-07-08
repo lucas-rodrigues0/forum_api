@@ -9,6 +9,7 @@ from graphql_api.scalars.article_scalar import (
     ArticleDeleted,
     UserInfoMissing,
     ArticleContentMissing,
+    InvalidUser,
 )
 from graphql_api.scalars.comment_scalar import Comment
 from graphql_api.helper import get_valid_data, validate_user_data, validate_data
@@ -129,17 +130,20 @@ def add_article(article_dict: dict):
     return ArticleContentMissing(message=f"Article {missing_column} is missing")
 
 
-def delete_article(article_id):
+def delete_article(article_id, user_id):
     db = db_session()
+    article_query = db.query(am.Article).filter(am.Article.article_id == article_id)
+    article = article_query.first()
+    if article.user_id == user_id:
+        db.query(cm.Comment).filter(cm.Comment.article_id == article_id).delete()
+        article_query.delete()
+        db.commit()
 
-    db.query(cm.Comment).filter(cm.Comment.article_id == article_id).delete()
-    db.query(am.Article).filter(am.Article.article_id == article_id).delete()
+        return ArticleDeleted(
+            message=f"Article {article_id} deleted and all comments related"
+        )
 
-    db.commit()
-
-    return ArticleDeleted(
-        message=f"Article {article_id} deleted and all comments related"
-    )
+    return InvalidUser()
 
 
 def update_article(article_dict: dict):
@@ -148,10 +152,13 @@ def update_article(article_dict: dict):
     article_id = article_dict.get("article_id")
     article = db.get_one(am.Article, article_id)
 
-    article.title = article_dict.get("title") or article.title
-    article.content = article_dict.get("content") or article.content
+    if article.user_id == article_dict.get("user_id"):
+        article.title = article_dict.get("title") or article.title
+        article.content = article_dict.get("content") or article.content
 
-    db.commit()
+        db.commit()
 
-    article_data = get_valid_data(article, am.Article)
-    return AddArticle(**article_data)
+        article_data = get_valid_data(article, am.Article)
+        return AddArticle(**article_data)
+
+    return InvalidUser()

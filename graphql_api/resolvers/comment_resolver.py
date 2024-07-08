@@ -3,7 +3,7 @@ from collections import defaultdict
 from graphql_api.db import db_session
 
 from graphql_api.models import article_model as am, comment_model as cm
-from graphql_api.scalars.article_scalar import Article, UserInfoMissing
+from graphql_api.scalars.article_scalar import Article, UserInfoMissing, InvalidUser
 from graphql_api.scalars.comment_scalar import (
     Comment,
     AddComment,
@@ -131,7 +131,7 @@ def add_comment(comment_dict: dict):
 
     valid_user, missing_info = validate_user_data(comment_dict)
     if not valid_user:
-        return UserInfoMissing(message=f"User info is missing: {missing_info}")
+        return UserInfoMissing(errors=f"User info is missing: {missing_info}")
 
     if comment_dict.get("is_reply") and not verify_comment_reply(
         comment_dict["comment_reply"]
@@ -141,7 +141,8 @@ def add_comment(comment_dict: dict):
     comment_required_columns = ["article_id", "content"]
     is_valid, missing_column = validate_data(comment_required_columns, comment_dict)
     if is_valid:
-        article = db.get_one(am.Article, comment_dict["article_id"])
+        article = get_article_from_comment(comment_dict["article_id"])
+
         comment = cm.Comment(
             user_id=comment_dict.get("user_id"),
             user_email=comment_dict.get("user_email"),
@@ -156,19 +157,24 @@ def add_comment(comment_dict: dict):
         db.commit()
 
         comment_data = get_valid_data(comment, cm.Comment)
-        comment_data["article"] = get_article_from_comment(article.article_id)
+        comment_data["article"] = article
         return AddComment(**comment_data)
 
-    return CommentContentMissing(message=f"Comment {missing_column} is missing")
+    return CommentContentMissing(errors=f"Comment {missing_column} is missing")
 
 
-def delete_comment(comment_id):
+def delete_comment(comment_id, user_id):
     db = db_session()
 
-    db.query(cm.Comment).filter(cm.Comment.comment_id == comment_id).delete()
-    db.commit()
+    comment_query = db.query(cm.Comment).filter(cm.Comment.comment_id == comment_id)
+    comment = comment_query.first()
+    if comment.user_id == user_id:
+        comment_query.delete()
+        db.commit()
 
-    return CommentDeleted(message=f"Comment {comment_id} deleted")
+        return CommentDeleted(message=f"Comment {comment_id} deleted")
+
+    return InvalidUser()
 
 
 def update_comment(comment_dict: dict):
@@ -179,10 +185,13 @@ def update_comment(comment_dict: dict):
         return CommentContentMissing()
     comment = db.get_one(cm.Comment, comment_id)
 
-    comment.content = comment_dict.get("content")
+    if comment.user_id == comment_dict.get("user_id"):
+        comment.content = comment_dict.get("content")
 
-    db.commit()
+        db.commit()
 
-    comment_data = get_valid_data(comment, cm.Comment)
-    comment_data["article"] = get_article_from_comment(comment.article_id)
-    return AddComment(**comment_data)
+        comment_data = get_valid_data(comment, cm.Comment)
+        comment_data["article"] = get_article_from_comment(comment.article_id)
+        return AddComment(**comment_data)
+
+    return InvalidUser()
