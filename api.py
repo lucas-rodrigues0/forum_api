@@ -5,7 +5,7 @@ import strawberry
 from strawberry.flask.views import GraphQLView
 
 from graphql_api.schemas import Query, Mutation
-
+from logger import logger
 
 info = Info(title="Forum API", version="1.0.0")
 
@@ -21,4 +21,5 @@ api.add_url_rule(
 
 @api.get("/")
 def home():
+    logger.debug("Redireciona para api graphql.")
     return redirect("/graphql")

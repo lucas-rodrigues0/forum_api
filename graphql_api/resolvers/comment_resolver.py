@@ -12,6 +12,7 @@ from graphql_api.scalars.comment_scalar import (
     CommentReplyNotAllowed,
 )
 from graphql_api.helper import get_valid_data, validate_user_data, validate_data
+from logger import logger
 
 
 def get_article_from_comment(article_id):
@@ -51,6 +52,7 @@ def get_comments():
             comment_dict["replies"] = [Comment(**reply) for reply in replies]
         comments_data_list.append(Comment(**comment_dict))
 
+    logger.debug(f"Encontrados {len(comments_data_list)} comentários.")
     return comments_data_list
 
 
@@ -85,6 +87,9 @@ def get_comments_by_user(user_id):
         comment_dict = serialize_comment(comment)
         comments_data_list.append(Comment(**comment_dict))
 
+    logger.debug(
+        f"Encontrados {len(comments_data_list)} comentários do usuário {user_id}."
+    )
     return comments_data_list
 
 
@@ -115,6 +120,9 @@ def get_comments_by_period(initial_date, end_date):
             comment_dict["replies"] = [Comment(**reply) for reply in replies]
         comments_data_list.append(Comment(**comment_dict))
 
+    logger.debug(
+        f"Encontrados {len(comments_data_list)} comentários do periodo {initial_date} até {end_date}."
+    )
     return comments_data_list
 
 
@@ -131,36 +139,43 @@ def add_comment(comment_dict: dict):
 
     valid_user, missing_info = validate_user_data(comment_dict)
     if not valid_user:
-        return UserInfoMissing(errors=f"User info is missing: {missing_info}")
+        error_msg = f"User info is missing: {missing_info}"
+        logger.warning(f"Error: {error_msg}")
+        return UserInfoMissing(errors=error_msg)
 
     if comment_dict.get("is_reply") and not verify_comment_reply(
         comment_dict["comment_reply"]
     ):
+        logger.warning(
+            "Error: Comentário não pode ser um reply de outro comentário que já é um reply."
+        )
         return CommentReplyNotAllowed()
 
     comment_required_columns = ["article_id", "content"]
     is_valid, missing_column = validate_data(comment_required_columns, comment_dict)
-    if is_valid:
-        article = get_article_from_comment(comment_dict["article_id"])
+    if not is_valid:
+        error_msg = f"Comment {missing_column} is missing."
+        logger.warning(f"Error: {error_msg}")
+        return CommentContentMissing(errors=error_msg)
 
-        comment = cm.Comment(
-            user_id=comment_dict.get("user_id"),
-            user_email=comment_dict.get("user_email"),
-            user_nickname=comment_dict.get("user_nickname"),
-            content=comment_dict.get("content"),
-            is_reply=comment_dict.get("is_reply"),
-            comment_reply=comment_dict.get("comment_reply"),
-            article_id=article.article_id,
-        )
+    article = get_article_from_comment(comment_dict["article_id"])
+    comment = cm.Comment(
+        user_id=comment_dict.get("user_id"),
+        user_email=comment_dict.get("user_email"),
+        user_nickname=comment_dict.get("user_nickname"),
+        content=comment_dict.get("content"),
+        is_reply=comment_dict.get("is_reply"),
+        comment_reply=comment_dict.get("comment_reply"),
+        article_id=article.article_id,
+    )
 
-        db.add(comment)
-        db.commit()
+    db.add(comment)
+    db.commit()
 
-        comment_data = get_valid_data(comment, cm.Comment)
-        comment_data["article"] = article
-        return AddComment(**comment_data)
-
-    return CommentContentMissing(errors=f"Comment {missing_column} is missing")
+    comment_data = get_valid_data(comment, cm.Comment)
+    comment_data["article"] = article
+    logger.debug(f"Comentário {comment.comment_id} adicionado com sucesso")
+    return AddComment(**comment_data)
 
 
 def delete_comment(comment_id, user_id):
@@ -168,13 +183,16 @@ def delete_comment(comment_id, user_id):
 
     comment_query = db.query(cm.Comment).filter(cm.Comment.comment_id == comment_id)
     comment = comment_query.first()
-    if comment.user_id == user_id:
-        comment_query.delete()
-        db.commit()
 
-        return CommentDeleted(message=f"Comment {comment_id} deleted")
+    if comment.user_id != user_id:
+        logger.warning("Error: Usuário não corresponde ao autor do comentário!")
+        return InvalidUser()
 
-    return InvalidUser()
+    comment_query.delete()
+    db.commit()
+
+    logger.debug(f"Comentário {comment_id} removido com sucesso")
+    return CommentDeleted(message=f"Comment {comment_id} deleted")
 
 
 def update_comment(comment_dict: dict):
@@ -182,16 +200,19 @@ def update_comment(comment_dict: dict):
 
     comment_id = comment_dict.get("comment_id")
     if not comment_dict.get("content"):
+        logger.warning("Error: Conteúdo de comentário não encontrado!")
         return CommentContentMissing()
     comment = db.get_one(cm.Comment, comment_id)
 
-    if comment.user_id == comment_dict.get("user_id"):
-        comment.content = comment_dict.get("content")
+    if comment.user_id != comment_dict.get("user_id"):
+        logger.warning("Error: Usuário não corresponde ao autor do comentário!")
+        return InvalidUser()
 
-        db.commit()
+    comment.content = comment_dict.get("content")
 
-        comment_data = get_valid_data(comment, cm.Comment)
-        comment_data["article"] = get_article_from_comment(comment.article_id)
-        return AddComment(**comment_data)
+    db.commit()
 
-    return InvalidUser()
+    comment_data = get_valid_data(comment, cm.Comment)
+    comment_data["article"] = get_article_from_comment(comment.article_id)
+    logger.debug(f"Comentário {comment_id} atualizado com sucesso")
+    return AddComment(**comment_data)
