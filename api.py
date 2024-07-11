@@ -21,5 +21,7 @@ api.add_url_rule(
 
 @api.get("/")
 def home():
+    """Redireciona para a rota graphql fornecidas pela biblioteca strawberry
+    para a documentação da API graphql e para o GraphQL Explorer"""
     logger.debug("Redireciona para api graphql.")
     return redirect("/graphql")

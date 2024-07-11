@@ -9,7 +9,9 @@ if TYPE_CHECKING:
     from .article_scalar import Article
 
 
-@strawberry.type(description="Comentário a um artigo")
+@strawberry.type(
+    description="Representação de um Comentário, seus comentários resposta e o artigo que se relaciona."
+)
 class Comment:
     comment_id: uuid.UUID
     user_id: str
@@ -25,7 +27,7 @@ class Comment:
     replies: Optional[List[Annotated["Comment", strawberry.lazy(".comment_scalar")]]]
 
 
-@strawberry.type
+@strawberry.type(description="Representação de Comentário inserido no banco de dados.")
 class AddComment:
     comment_id: uuid.UUID
     user_id: str
@@ -40,16 +42,18 @@ class AddComment:
     updated_at: datetime.datetime
 
 
-@strawberry.type
+@strawberry.type(description="Mensagem de confirmação para remoção de Comentário.")
 class CommentDeleted:
     message: str = "Comment deleted"
 
 
-@strawberry.type
+@strawberry.type(description="Mensagem de erro para dados de comentário ausente.")
 class CommentContentMissing:
     errors: str = "Comment content is missing"
 
 
-@strawberry.type
+@strawberry.type(
+    description="Mensagem de erro para comentário resposta a outro comentário que também é uma resposta."
+)
 class CommentReplyNotAllowed:
     errors: str = "Comment can not be replied to another reply"

@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from .comment_scalar import Comment
 
 
-@strawberry.type(description="Artigo inserido no forum")
+@strawberry.type(description="Representação de Artigo e seus comentários.")
 class Article:
     article_id: uuid.UUID
     user_id: str
@@ -22,7 +22,7 @@ class Article:
     comments: Optional[List[Annotated["Comment", strawberry.lazy(".comment_scalar")]]]
 
 
-@strawberry.type
+@strawberry.type(description="Representação de Artigo inserido no banco de dados.")
 class AddArticle:
     article_id: uuid.UUID
     user_id: str
@@ -34,21 +34,23 @@ class AddArticle:
     updated_at: datetime.datetime
 
 
-@strawberry.type
+@strawberry.type(description="Mensagem de confirmação para remoção de Artigo.")
 class ArticleDeleted:
     message: str = "Article deleted"
 
 
-@strawberry.type
+@strawberry.type(description="Mensagem de erro para dados de usuário ausente.")
 class UserInfoMissing:
     errors: str = "User info is missing"
 
 
-@strawberry.type
+@strawberry.type(description="Mensagem de erro para dados de artigo ausente.")
 class ArticleContentMissing:
     errors: str = "Article title or content is missing"
 
 
-@strawberry.type
+@strawberry.type(
+    description="Mensagem de erro para usuário não válido para a operação."
+)
 class InvalidUser:
     errors: str = "Invalid user. You can only modify your own post."

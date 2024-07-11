@@ -16,25 +16,31 @@ from graphql_api.resolvers import (
 )
 
 
-@strawberry.type
+@strawberry.type(
+    description="Query para a leitura de artigos e comentários existentes no banco de dados."
+)
 class Query:
 
-    @strawberry.field
+    @strawberry.field(description="Query para leitura de todos artigos.")
     def articles(self) -> typing.List[Article]:
         articles_data_list = get_articles()
         return articles_data_list
 
-    @strawberry.field
+    @strawberry.field(description="Query para leitura de artigo pelo seu ID.")
     def article_by_id(self, article_id: uuid.UUID) -> Article:
         articles_data = get_article_by_id(article_id)
         return articles_data
 
-    @strawberry.field
+    @strawberry.field(
+        description="Query para leitura de todos artigos de um usuário específico."
+    )
     def articles_by_user_id(self, user_id: str) -> typing.List[Article]:
         articles_data_list = get_article_by_user(user_id)
         return articles_data_list
 
-    @strawberry.field
+    @strawberry.field(
+        description="Query para leitura de todos artigos de um determinado período."
+    )
     def articles_by_period(
         self, initial_date: str, end_date: str
     ) -> typing.List[Article]:
@@ -44,22 +50,26 @@ class Query:
         articles_data_list = get_articles_by_period(initial_datetime, end_datetime)
         return articles_data_list
 
-    @strawberry.field
+    @strawberry.field(description="Query para leitura de todos comentários.")
     def comments(self) -> typing.List[Comment]:
         comment_data_list = get_comments()
         return comment_data_list
 
-    @strawberry.field
+    @strawberry.field(description="Query para leitura de comentário pelo seu ID.")
     def comment_by_id(self, comment_id: uuid.UUID) -> Comment:
         comment_data = get_comment_by_id(comment_id)
         return comment_data
 
-    @strawberry.field
+    @strawberry.field(
+        description="Query para leitura de todos comentários de um usuário específico."
+    )
     def comment_by_user_id(self, user_id: str) -> typing.List[Comment]:
         comments_data_list = get_comments_by_user(user_id)
         return comments_data_list
 
-    @strawberry.field
+    @strawberry.field(
+        description="Query para leitura de todos comentários de um determinado período."
+    )
     def comments_by_period(
         self, initial_date: str, end_date: str
     ) -> typing.List[Comment]:

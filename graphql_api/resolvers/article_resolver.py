@@ -17,6 +17,7 @@ from logger import logger
 
 
 def serialize_article_comments(article_id):
+    """Serializa os comentários relacionados ao artigo indicado pelo parâmetro article_id."""
     db = db_session()
 
     comments = db.query(cm.Comment).filter(cm.Comment.article_id == article_id).all()
@@ -43,6 +44,7 @@ def serialize_article_comments(article_id):
 
 
 def serialize_article(article: am.Article):
+    """Serializa um artigo e seus comentários."""
     article_comments = serialize_article_comments(article.article_id)
     article_dict = get_valid_data(article, am.Article)
     article_dict["comments"] = article_comments
@@ -51,6 +53,9 @@ def serialize_article(article: am.Article):
 
 
 def get_articles():
+    """Busca todos artigos existentes no banco de dados.
+    Retorna lista de scalars Article.
+    """
     db = db_session()
 
     articles = db.query(am.Article).all()
@@ -65,6 +70,9 @@ def get_articles():
 
 
 def get_article_by_id(article_id):
+    """Busca artigo específico com o ID indicado no parâmetro article_id.
+    Retorn um scalar Article.
+    """
     db = db_session()
 
     article = db.get_one(am.Article, article_id)
@@ -74,6 +82,9 @@ def get_article_by_id(article_id):
 
 
 def get_article_by_user(user_id):
+    """Busca todos artigos pertencentes a um usuário indicado pelo parâmetro user_id.
+    Retorna lista de scalars Article.
+    """
     db = db_session()
 
     articles = db.query(am.Article).filter(am.Article.user_id == user_id).all()
@@ -88,6 +99,9 @@ def get_article_by_user(user_id):
 
 
 def get_articles_by_period(initial_date, end_date):
+    """Busca todos artigos criados dentro do período indicado pelos parâmetros 
+    initial_date e end_date. Retorna lista de scalars Article.
+    """
     db = db_session()
 
     articles = (
@@ -110,6 +124,9 @@ def get_articles_by_period(initial_date, end_date):
 
 
 def add_article(article_dict: dict):
+    """Adiciona novo artigo ao banco de dados. Valída os campos necessários de
+    usuário e artigo. Retorna scalar AddArticle.
+    """
     db = db_session()
 
     valid_user, missing_info = validate_user_data(article_dict)
@@ -142,6 +159,9 @@ def add_article(article_dict: dict):
 
 
 def delete_article(article_id, user_id):
+    """Remove artigo indicado pelo parâmetro article_id. Valída se o usuário
+    indicado pelo user_id é o mesmo que inseriu o artigo. Retorna mensagem.
+    """
     db = db_session()
     article_query = db.query(am.Article).filter(am.Article.article_id == article_id)
     article = article_query.first()
@@ -161,6 +181,9 @@ def delete_article(article_id, user_id):
 
 
 def update_article(article_dict: dict):
+    """Atualiza artigo indicado no parâmetro. Valída se o usuário indicado é o 
+    mesmo que inseriu o artigo. Retorna scalar AddArticle.
+    """
     db = db_session()
 
     article_id = article_dict.get("article_id")

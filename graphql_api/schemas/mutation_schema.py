@@ -23,10 +23,14 @@ from graphql_api.resolvers import (
 )
 
 
-@strawberry.type
+@strawberry.type(
+    description="Mutation para inserção, atualização e remoção de artigos e comentários."
+)
 class Mutation:
 
-    @strawberry.mutation
+    @strawberry.mutation(
+        description="Mutation para a inserção de artigo no banco de dados."
+    )
     def add_article(
         self,
         user_id: str,
@@ -45,14 +49,18 @@ class Mutation:
         add_article_resp = add_article(article_dict)
         return add_article_resp
 
-    @strawberry.mutation
+    @strawberry.mutation(
+        description="Mutation para a remoção de artigo do banco de dados."
+    )
     def remove_article(
         self, article_id: uuid.UUID, user_id: str
     ) -> Union[ArticleDeleted, InvalidUser]:
         delete_article_resp = delete_article(article_id, user_id)
         return delete_article_resp
 
-    @strawberry.mutation
+    @strawberry.mutation(
+        description="Mutation para a atualização de artigo no banco de dados."
+    )
     def update_article(
         self,
         article_id: uuid.UUID,
@@ -70,7 +78,9 @@ class Mutation:
         update_article_resp = update_article(article_dict)
         return update_article_resp
 
-    @strawberry.mutation
+    @strawberry.mutation(
+        description="Mutation para a inserção de comentário no banco de dados."
+    )
     def add_comment(
         self,
         user_id: str,
@@ -99,14 +109,18 @@ class Mutation:
         add_comment_resp = add_comment(comment_dict)
         return add_comment_resp
 
-    @strawberry.mutation
+    @strawberry.mutation(
+        description="Mutation para a remoção de comentário do banco de dados."
+    )
     def remove_comment(
         self, comment_id: uuid.UUID, user_id: str
     ) -> Union[CommentDeleted, InvalidUser]:
         delete_comment_resp = delete_comment(comment_id, user_id)
         return delete_comment_resp
 
-    @strawberry.mutation
+    @strawberry.mutation(
+        description="Mutation para a atualização de comentário no banco de dados."
+    )
     def update_comment(
         self, comment_id: uuid.UUID, user_id: str, content: str
     ) -> Union[AddComment, CommentContentMissing, InvalidUser]:

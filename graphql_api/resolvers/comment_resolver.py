@@ -16,6 +16,7 @@ from logger import logger
 
 
 def get_article_from_comment(article_id):
+    """Busca um artigo indicado pelo parâmetro article_id sem a relação de comentários."""
     db = db_session()
 
     article = db.get_one(am.Article, article_id)
@@ -25,6 +26,7 @@ def get_article_from_comment(article_id):
 
 
 def serialize_comment(comment: cm.Comment):
+    """Serializa um comentário e o seu artigo."""
     comment_data_dict = get_valid_data(comment, cm.Comment)
     comment_data_dict["article"] = get_article_from_comment(comment.article_id)
     comment_data_dict["replies"] = None
@@ -32,6 +34,9 @@ def serialize_comment(comment: cm.Comment):
 
 
 def get_comments():
+    """Busca todos comentários existentes no banco de dados.
+    Retorna lista de scalars Comment.
+    """
     db = db_session()
 
     comments = db.query(cm.Comment).all()
@@ -57,6 +62,9 @@ def get_comments():
 
 
 def get_comment_by_id(comment_id):
+    """Busca comentário específico com o ID indicado no parâmetro comment_id.
+    Retorn um scalar Comment.
+    """
     db = db_session()
 
     comment = db.get_one(cm.Comment, comment_id)
@@ -78,6 +86,9 @@ def get_comment_by_id(comment_id):
 
 
 def get_comments_by_user(user_id):
+    """Busca todos comentários pertencentes a um usuário indicado pelo parâmetro user_id.
+    Retorna lista de scalars Comment.
+    """
     db = db_session()
 
     comments = db.query(cm.Comment).filter(cm.Comment.user_id == user_id).all()
@@ -94,6 +105,9 @@ def get_comments_by_user(user_id):
 
 
 def get_comments_by_period(initial_date, end_date):
+    """Busca todos comentários criados dentro do período indicado pelos parâmetros
+    initial_date e end_date. Retorna lista de scalars Comment.
+    """
     db = db_session()
 
     comments = (
@@ -127,6 +141,7 @@ def get_comments_by_period(initial_date, end_date):
 
 
 def verify_comment_reply(comment_id):
+    """Verifica se o comentário é uma resposta a outro comentário."""
     db = db_session()
     comment = db.get_one(cm.Comment, comment_id)
     if comment.is_reply:
@@ -135,6 +150,10 @@ def verify_comment_reply(comment_id):
 
 
 def add_comment(comment_dict: dict):
+    """Adiciona novo comentário ao banco de dados. Valída os campos necessários de
+    usuário e comentário. Verifica se não é um comentário resposta relacionado a
+    outro comentário também resposta. Retorna scalar AddComment.
+    """
     db = db_session()
 
     valid_user, missing_info = validate_user_data(comment_dict)
@@ -179,6 +198,9 @@ def add_comment(comment_dict: dict):
 
 
 def delete_comment(comment_id, user_id):
+    """Remove comentário indicado pelo parâmetro comment_id. Valída se o usuário
+    indicado pelo user_id é o mesmo que inseriu o comentário. Retorna mensagem.
+    """
     db = db_session()
 
     comment_query = db.query(cm.Comment).filter(cm.Comment.comment_id == comment_id)
@@ -196,6 +218,9 @@ def delete_comment(comment_id, user_id):
 
 
 def update_comment(comment_dict: dict):
+    """Atualiza comentário indicado no parâmetro. Valída se o usuário indicado é o
+    mesmo que inseriu o comentário. Retorna scalar AddComment.
+    """
     db = db_session()
 
     comment_id = comment_dict.get("comment_id")
