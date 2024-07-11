@@ -100,23 +100,24 @@ O arquivo `docker-compose.yml` incluído no repositório de 'MVP2 Backend APP' s
 └── docker-compose.yml
 ```
 
-O diretório `database` é criado através do Compose como volume do container do postgres. A estrutura dos diretórios dos serviços `mvp2 backend app` e `full text searcher api` são apresentados em seus respectivos documentos.
-O arquivo de docker compose deverá estar na raiz junto com os diretórios de todos os serviços. 
+O diretório `database` é criado através do docker compose como volume do container do postgres. A estrutura dos diretórios dos serviços `mvp2 backend app` e `full text searcher api` são apresentados em seus respectivos documentos.
+O arquivo de docker-compose.yml deverá estar no diretório raiz junto com os diretórios de todos os serviços para que a orquestração possa fazer o build das respectivas imagens. 
 
 ## Forum
 
 O serviço é uma Api GraphQL que apresenta artigos publicados pelos usuários. Os artigos possuem um título e um conteúdo de texto.  
 Os usuários podem inserir um comentário a qualquer artigo e podem inserir um novo comentário em resposta a outro comentário.   
-O comentário de resposta não poderá ser inserido a outro comentário resposta, permitido apenas três níveis de postagens.  
+Um comentário resposta não poderá ser inserido a outro comentário que já é uma resposta, ele poderá ser inserido como resposta ao comentário referente ao artigo, permitido apenas três níveis de postagens demonstrado a seguir.  
 ```
-Artigo
-    ├── Comentário
-    |       ├── Comentário de Resposta
-    |       └── Comentário de Resposta
-    └── Comentário
-            └── Comentário de Resposta
+Artigo 1
+    ├── Comentário 1
+    |       ├── Comentário de Resposta 1
+    |       └── Comentário de Resposta 2
+    └── Comentário 2
+            └── Comentário de Resposta 3
 ```
 As atualizações e remoções tanto do artigo quanto do comentário só poderão ser feitas pelo próprio usuário que as inseriu no banco de dados.
+Ao remover um artigo, todos os comentários relacionados a esse artigo também serão removidos.
 Os retornos das queries de leitura buscam trazer a relação de comentários e respostas aos artigos. Representado os níveis de postagem dentro do objeto retornado para manter o relacionamento das postagens. Artigo > Comentário > Comentário Resposta.
 
 O serviço utiliza a biblioteca Strawberry para implementar a camada GraphQL. A biblioteca disponibiliza uma interface gráfica para a documentação das queries e mutations existentes, assim como dos Schema types. Também disponibiliza na interface gráfica o GraphQL Explorer para realizar testes com a API. Para acessar a interface, navegar para a rota `/graphql` no navegador.
@@ -124,7 +125,7 @@ O serviço utiliza a biblioteca Strawberry para implementar a camada GraphQL. A 
 ## Configuração e Instalação
 
 As variáveis API_PORT e DEBUG são opcionais para o desenvolvimento. No App é sugerido utilizar a porta 4444, mas caso queira trocar, alterar esse valor pela  variável é possível, mas será necessário alterar as portas no Dockerfile e docker-compose para as portas serem expostas corretamente.
-A variável Debug é para o desenvolvimento da aplicação Flask. É realizado o auto reload quando há alteração de código.
+A variável Debug é apenas para o desenvolvimento da aplicação Flask. Ele permite que o Flask rode em debug mode, e é realizado o auto reload quando há alteração de código.
 
 Para a conexão com o banco de dados é necessário inserir os valores corretos no `.env`. Os valores no arquivo `.env-example` são uma sugestão:
 ```
@@ -156,7 +157,7 @@ Para acessar somente esse serviço:
 ```
 http://127.0.0.1:4444/
 ```
-Será redirecionado para o explorer GraphQL do Strawberry no endpoint `/graphql`.
+Será automaticamente redirecionado para o explorer GraphQL do Strawberry no endpoint `/graphql`.
 
 
 ### Utilizando somente o Docker
@@ -164,6 +165,9 @@ Será redirecionado para o explorer GraphQL do Strawberry no endpoint `/graphql`
 É necessário ter instalado o [Docker](https://docs.docker.com/engine/install/).
 
 É necessário criar os arquivos `.env` para cada serviço. O arquivo `.env-example` pode ser copiado e preenchido com os valores corretos.
+
+> [!NOTE]  
+> Caso ainda não tenha feito esses passos ao subir os outros serviços.
 
 Para subir o ambiente sem o docker compose é importante criar uma network para que os serviços possam se conectar entre si.
 Para criar uma network do tipo bridge com o nome de `app-network` execute o comando:
