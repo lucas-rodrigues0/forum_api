@@ -1,7 +1,7 @@
 import strawberry
 from pydantic import typing
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from graphql_api.scalars import Article, Comment
 from graphql_api.resolvers import (
@@ -46,7 +46,7 @@ class Query:
     ) -> typing.List[Article]:
         datetime_format = "%d-%m-%Y"
         initial_datetime = datetime.strptime(initial_date, datetime_format)
-        end_datetime = datetime.strptime(end_date, datetime_format)
+        end_datetime = datetime.strptime(end_date, datetime_format) + timedelta(days=1)
         articles_data_list = get_articles_by_period(initial_datetime, end_datetime)
         return articles_data_list
 
@@ -75,6 +75,6 @@ class Query:
     ) -> typing.List[Comment]:
         datetime_format = "%d-%m-%Y"
         initial_datetime = datetime.strptime(initial_date, datetime_format)
-        end_datetime = datetime.strptime(end_date, datetime_format)
+        end_datetime = datetime.strptime(end_date, datetime_format) + timedelta(days=1)
         comments_data_list = get_comments_by_period(initial_datetime, end_datetime)
         return comments_data_list
